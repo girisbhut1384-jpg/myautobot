@@ -13,4 +13,3 @@ jobs:
           curl -s -X POST https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendMessage \
           -d chat_id="@GirishAIKit" \
           -d text="🚀 Automate your business with AI! Get the kit here: https://girisbhut.gumroad.com/l/sgdoet"
-
