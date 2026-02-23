@@ -1,0 +1,31 @@
+name: Twitter Auto Bot
+on:
+  schedule:
+    - cron: '0 */4 * * *' # यह हर 4 घंटे में अपने आप चलेगा
+  workflow_dispatch:      # हाथ से चलाने के लिए बटन
+
+jobs:
+  tweet:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'
+      - name: Install Tweepy
+        run: pip install tweepy
+      - name: Run Bot
+        env:
+          API_KEY: ${{ secrets.API_KEY }}
+          API_SECRET: ${{ secrets.API_SECRET }}
+          ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+          ACCESS_TOKEN_SECRET: ${{ secrets.ACCESS_TOKEN_SECRET }}
+        run: |
+          import tweepy, os
+          auth = tweepy.OAuthHandler(os.environ['API_KEY'], os.environ['API_SECRET'])
+          auth.set_access_token(os.environ['ACCESS_TOKEN'], os.environ['ACCESS_TOKEN_SECRET'])
+          api = tweepy.API(auth)
+          msg = "🚀 Automate your business with AI! Get the kit here: https://girisbhut.gumroad.com/l/sgdoet"
+          api.update_status(msg)
+          print("Success: Tweet posted!")
