@@ -1,8 +1,8 @@
 name: Twitter Auto Bot
 on:
   schedule:
-    - cron: '0 */4 * * *' # यह हर 4 घंटे में अपने आप चलेगा
-  workflow_dispatch:      # हाथ से चलाने के लिए बटन
+    - cron: '0 */4 * * *'
+  workflow_dispatch:
 
 jobs:
   tweet:
@@ -23,9 +23,12 @@ jobs:
           ACCESS_TOKEN_SECRET: ${{ secrets.ACCESS_TOKEN_SECRET }}
         run: |
           import tweepy, os
-          auth = tweepy.OAuthHandler(os.environ['API_KEY'], os.environ['API_SECRET'])
-          auth.set_access_token(os.environ['ACCESS_TOKEN'], os.environ['ACCESS_TOKEN_SECRET'])
-          api = tweepy.API(auth)
+          client = tweepy.Client(
+              consumer_key=os.environ['API_KEY'],
+              consumer_secret=os.environ['API_SECRET'],
+              access_token=os.environ['ACCESS_TOKEN'],
+              access_token_secret=os.environ['ACCESS_TOKEN_SECRET']
+          )
           msg = "🚀 Automate your business with AI! Get the kit here: https://girisbhut.gumroad.com/l/sgdoet"
-          api.update_status(msg)
+          client.create_tweet(text=msg)
           print("Success: Tweet posted!")
