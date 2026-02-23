@@ -1,15 +1,5 @@
-name: Telegram Auto Bot
-on:
-  schedule:
-    - cron: '0 */4 * * *'
-  workflow_dispatch:
-
-jobs:
-  post_to_telegram:
-    runs-on: ubuntu-latest
-    steps:
       - name: Send Message
         run: |
           curl -s -X POST https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendMessage \
-          -d chat_id="@GirishAIKit" \
+          -d chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" \
           -d text="🚀 Automate your business with AI! Get the kit here: https://girisbhut.gumroad.com/l/sgdoet"
