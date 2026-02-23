@@ -22,6 +22,7 @@ jobs:
           ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
           ACCESS_TOKEN_SECRET: ${{ secrets.ACCESS_TOKEN_SECRET }}
         run: |
+          python -c "
           import tweepy, os
           client = tweepy.Client(
               consumer_key=os.environ['API_KEY'],
@@ -29,6 +30,7 @@ jobs:
               access_token=os.environ['ACCESS_TOKEN'],
               access_token_secret=os.environ['ACCESS_TOKEN_SECRET']
           )
-          msg = "🚀 Automate your business with AI! Get the kit here: https://girisbhut.gumroad.com/l/sgdoet"
+          msg = '🚀 Automate your business with AI! https://girisbhut.gumroad.com/l/sgdoet'
           client.create_tweet(text=msg)
-          print("Success: Tweet posted!")
+          print('Success: Tweet posted!')
+          "
