@@ -1,36 +1,16 @@
-name: Twitter Auto Bot
+name: Telegram Auto Bot
 on:
   schedule:
     - cron: '0 */4 * * *'
   workflow_dispatch:
 
 jobs:
-  tweet:
+  post_to_telegram:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - name: Setup Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.9'
-      - name: Install Tweepy
-        run: pip install tweepy
-      - name: Run Bot
-        env:
-          API_KEY: ${{ secrets.API_KEY }}
-          API_SECRET: ${{ secrets.API_SECRET }}
-          ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
-          ACCESS_TOKEN_SECRET: ${{ secrets.ACCESS_TOKEN_SECRET }}
+      - name: Send Message
         run: |
-          python -c "
-          import tweepy, os
-          client = tweepy.Client(
-              consumer_key=os.environ['API_KEY'],
-              consumer_secret=os.environ['API_SECRET'],
-              access_token=os.environ['ACCESS_TOKEN'],
-              access_token_secret=os.environ['ACCESS_TOKEN_SECRET']
-          )
-          msg = '🚀 Automate your business with AI! https://girisbhut.gumroad.com/l/sgdoet'
-          client.create_tweet(text=msg)
-          print('Success: Tweet posted!')
-          "
+          curl -s -X POST https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendMessage \
+          -d chat_id="@GirishAIKit" \
+          -d text="🚀 Automate your business with AI! Get the kit here: https://girisbhut.gumroad.com/l/sgdoet"
+
