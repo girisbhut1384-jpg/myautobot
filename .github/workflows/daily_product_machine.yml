@@ -1,4 +1,4 @@
-name: 100_Percent_Final_Success
+name: 100_Percent_Success_Final
 on:
   workflow_dispatch:
 
@@ -6,20 +6,21 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Create Product
+      - name: Create Product and Notify
         run: |
-          # ध्यान दें: URL के अंत में / डालना ज़रूरी है
+          # 1. गमरोड को सीधा और सही पते पर डेटा भेजना
           RESPONSE=$(curl -s -X POST "https://api.gumroad.com/v2/products" \
             -H "Authorization: Bearer ${{ secrets.GUMROAD_TOKEN }}" \
-            -d "name=AI_Ebook_Mastery_$(date +%H%M)" \
+            -d "name=AI_Ebook_Master_$(date +%H%M)" \
             -d "price=1000" \
             -d "description=Premium Automation Guide" \
             -d "published=true")
 
-          echo "Response: $RESPONSE"
+          echo "Gumroad Response: $RESPONSE"
 
-          # टेलीग्राम पर रिपोर्ट भेजना
-          curl -s -X POST https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendMessage \
-          -d chat_id=${{ secrets.TELEGRAM_CHAT_ID }} \
+          # 2. टेलीग्राम को डेटा भेजना (बिना किसी देरी के)
+          # अगर यहाँ गड़बड़ हुई तो GitHub Error दिखा देगा
+          curl -f -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendMessage" \
+          -d chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" \
           -d text="📊 *असली रिपोर्ट:* %0A%0A$RESPONSE" \
           -d parse_mode="Markdown"
