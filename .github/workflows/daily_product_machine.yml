@@ -1,4 +1,4 @@
-name: Final_Expert_Solution_2026
+name: Gumroad_Final_Victory_2026
 on:
   workflow_dispatch:
 
@@ -6,29 +6,23 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Create Product
+      - name: Create Product via API
         run: |
-          # एक्सपर्ट तरीका: URL के अंत में स्लैश और टोकन भेजने का नया तरीका
-          RESPONSE=$(curl -s -X POST "https://api.gumroad.com/v2/products/" \
-            --header "Authorization: Bearer ${{ secrets.GUMROAD_TOKEN }}" \
-            --header "Content-Type: application/json" \
-            --data '{
-              "name": "Success_Product_Final",
-              "price_cents": 1000,
-              "description": "Automated via API",
-              "published": true
-            }')
+          # आपके टोकन और ब्राउज़र टेस्ट के हिसाब से सबसे सटीक तरीका
+          RESPONSE=$(curl -s -X POST "https://api.gumroad.com/v2/products" \
+            -H "Authorization: Bearer ${{ secrets.GUMROAD_TOKEN }}" \
+            -d "name=Victory_Product_$(date +%H%M)" \
+            -d "price=1000" \
+            -d "description=Success_Automated_Product" \
+            -d "published=true")
 
           echo "Full Response: $RESPONSE"
 
-          # टेलीग्राम पर साफ़ संदेश
+          # टेलीग्राम पर रिपोर्ट भेजना
           if [[ $RESPONSE == *"\"success\":true"* ]]; then
-             MSG="✅ मशीन चालू हो गई है! प्रोडक्ट बन गया।"
-          elif [[ $RESPONSE == *"<!DOCTYPE html"* ]]; then
-             # अगर अभी भी 404 आए, तो ये बिना v2 वाला फाइनल ट्राई है
-             MSG="⚠️ अभी भी पुराना लिंक फेल हो रहा है। हमें बिना v2 वाला लिंक चाहिए।"
+             MSG="✅ आखिरकार! मशीन ने काम कर दिया। गमरोड पर चेक करें!"
           else
-             MSG="📊 रिपोर्ट: $RESPONSE"
+             MSG="📊 फाइनल रिपोर्ट: $RESPONSE"
           fi
 
           curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendMessage" \
