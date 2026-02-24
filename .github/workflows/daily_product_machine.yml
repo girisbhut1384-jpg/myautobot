@@ -1,24 +1,23 @@
-name: Final_Success_Machine
+name: 100_Percent_Final_Success
 on:
   workflow_dispatch:
 
 jobs:
-  launch:
+  build:
     runs-on: ubuntu-latest
     steps:
-      - name: Force Publish Product
+      - name: Send Command to Gumroad
         run: |
-          # बिना किसी तामझाम के सीधा कमांड
-          curl -X POST https://api.gumroad.com/v2/products \
+          # हमने यहाँ से हर वो चीज़ हटा दी है जिससे एरर आ सकता था
+          RESPONSE=$(curl -s -X POST https://api.gumroad.com/v2/products \
             -d "access_token=${{ secrets.GUMROAD_TOKEN }}" \
-            -d "name=AI_Final_Success_$(date +%H%M)" \
+            -d "name=ULTIMATE_SUCCESS_$(date +%H%M)" \
             -d "price=1000" \
-            -d "description=Official Automated Digital Product" \
-            -d "published=true"
-          
-      - name: Telegram Report
-        run: |
+            -d "description=Official Automated Product" \
+            -d "published=true")
+
+          # टेलीग्राम पर सीधा कच्चा चिट्ठा भेजना
           curl -s -X POST https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendMessage \
           -d chat_id=${{ secrets.TELEGRAM_CHAT_ID }} \
-          -d text="🚀 *मिशन सफल!* %0Aमशीन ने गमरोड को सीधा कमांड भेज दिया है। अपनी प्रोडक्ट लिस्ट चेक करें।" \
+          -d text="📊 *Gumroad Report:* %0A%0A$RESPONSE" \
           -d parse_mode="Markdown"
