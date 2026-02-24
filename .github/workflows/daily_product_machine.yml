@@ -8,17 +8,17 @@ jobs:
     steps:
       - name: Create Product
         run: |
-          # V1 API का सीधा इस्तेमाल - सबसे आसान और पक्का
-          curl -X POST https://api.gumroad.com/v2/products \
-            -d "access_token=${{ secrets.GUMROAD_TOKEN }}" \
-            -d "name=AI_Ebook_$(date +%H%M)" \
-            -d "price=1000" \
-            -d "description=Official Automated Guide" \
-            -d "published=true"
+          # हमने URL को बिल्कुल सरल कर दिया है जो हर हाल में काम करता है
+          RESPONSE=$(curl -s -X POST "https://api.gumroad.com/v2/products" \
+            --data-urlencode "access_token=${{ secrets.GUMROAD_TOKEN }}" \
+            --data-urlencode "name=AI_Master_Success_$(date +%H%M)" \
+            --data-urlencode "price=1000" \
+            --data-urlencode "description=Automated Premium Guide" \
+            --data-urlencode "published=true")
 
-      - name: Simple Telegram Notify
-        run: |
-          # बिना किसी कोडिंग के सीधा सा मैसेज
-          curl -s -X POST https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendMessage \
-          -d chat_id=${{ secrets.TELEGRAM_CHAT_ID }} \
-          -d text="✅ मशीन ने गमरोड पर प्रोडक्ट बनाने का हुक्म दे दिया है। कृपया पेज चेक करें!"
+          echo "Full Response: $RESPONSE"
+
+          # टेलीग्राम पर रिपोर्ट - अब बिना किसी झंझट के
+          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendMessage" \
+          -d chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" \
+          -d text="🚀 *मशीन का ताज़ा जवाब:* %0A%0A$RESPONSE"
