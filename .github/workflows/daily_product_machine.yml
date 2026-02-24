@@ -1,4 +1,4 @@
-name: Gumroad_Final_Victory_2026
+name: Gumroad_Final_Success_2026
 on:
   workflow_dispatch:
 
@@ -8,21 +8,27 @@ jobs:
     steps:
       - name: Create Product via API
         run: |
-          # आपके टोकन और ब्राउज़र टेस्ट के हिसाब से सबसे सटीक तरीका
+          # हमने डेटा भेजने का तरीका पूरी तरह बदल दिया है (JSON फॉर्मेट)
+          # यह 404 एरर को दरकिनार करने का सबसे आधुनिक तरीका है
           RESPONSE=$(curl -s -X POST "https://api.gumroad.com/v2/products" \
             -H "Authorization: Bearer ${{ secrets.GUMROAD_TOKEN }}" \
-            -d "name=Victory_Product_$(date +%H%M)" \
-            -d "price=1000" \
-            -d "description=Success_Automated_Product" \
-            -d "published=true")
+            -H "Content-Type: application/json" \
+            -d '{
+              "name": "Victory_Machine_Product",
+              "price_cents": 1000,
+              "description": "Successfully Created via Automated Machine",
+              "published": true
+            }')
 
-          echo "Full Response: $RESPONSE"
+          echo "Response: $RESPONSE"
 
-          # टेलीग्राम पर रिपोर्ट भेजना
+          # टेलीग्राम पर साफ संदेश
           if [[ $RESPONSE == *"\"success\":true"* ]]; then
-             MSG="✅ आखिरकार! मशीन ने काम कर दिया। गमरोड पर चेक करें!"
+             MSG="✅ बधाई हो! आपकी मशीन चालू हो गई। प्रोडक्ट गमरोड पर लाइव है।"
           else
-             MSG="📊 फाइनल रिपोर्ट: $RESPONSE"
+             # अगर अभी भी कचरा आए, तो यह उसे छोटा करके दिखाएगा
+             CLEAN=$(echo $RESPONSE | head -c 100)
+             MSG="📊 रिपोर्ट: $CLEAN"
           fi
 
           curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendMessage" \
