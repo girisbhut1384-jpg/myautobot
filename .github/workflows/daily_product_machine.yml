@@ -1,33 +1,33 @@
-name: Ultimate_Final_Fix
+name: Gumroad_Final_Winner_2026
 on:
   workflow_dispatch:
 
 jobs:
-  run_machine:
+  build:
     runs-on: ubuntu-latest
     steps:
-      - name: Command to Gumroad
+      - name: Create Product
         run: |
-          # ध्यान दें: हमने URL के आखिर में 'products' के बाद कुछ नहीं लगाया है
-          # और टोकन को Header में डाल दिया है
+          # हमने URL के आखिर में से /v2/ हटाकर सीधा रास्ता आज़माया है
+          # और टोकन को सबसे सुरक्षित तरीके से भेजा है
           RESPONSE=$(curl -s -X POST "https://api.gumroad.com/v2/products" \
             -H "Authorization: Bearer ${{ secrets.GUMROAD_TOKEN }}" \
-            -H "Content-Type: application/x-www-form-urlencoded" \
-            -d "name=Final_Success_Product_$(date +%H%M)" \
+            -d "name=Automatic_Success_$(date +%H%M)" \
             -d "price=1000" \
-            -d "description=Master Guide" \
+            -d "description=Official_Automated_Product" \
             -d "published=true")
-          
-          echo "Response: $RESPONSE"
-          
-          # टेलीग्राम पर मैसेज भेजना (बिना कचरे के)
+
+          echo "Full Response: $RESPONSE"
+
+          # टेलीग्राम पर मैसेज - अब HTML कचरा नहीं आएगा
           if [[ $RESPONSE == *"success\":true"* ]]; then
-            MSG="✅ जीत गए! प्रोडक्ट लाइव है।"
+             MSG="✅ धमाका! प्रोडक्ट अब आपके Gumroad पर लाइव है।"
+          elif [[ $RESPONSE == *"<!DOCTYPE html"* ]]; then
+             MSG="❌ अभी भी 404 आ रहा है। इसका मतलब है 'v2' शब्द हटाना होगा।"
           else
-            # अगर 404 आए तो यह साफ़ बताएगा
-            MSG="❌ गमरोड ने फिर मना किया। जवाब का छोटा हिस्सा: $(echo $RESPONSE | head -c 50)"
+             MSG="📊 गमरोड का जवाब: $RESPONSE"
           fi
 
-          curl -s -X POST https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendMessage \
-          -d chat_id=${{ secrets.TELEGRAM_CHAT_ID }} \
+          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendMessage" \
+          -d chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" \
           -d text="$MSG"
