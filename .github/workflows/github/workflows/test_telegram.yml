@@ -1,0 +1,14 @@
+name: Final Telegram Test
+
+on:
+  workflow_dispatch: # यह बटन दबाकर टेस्ट करने के लिए है
+
+jobs:
+  send_message:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Telegram Message Step
+        run: |
+          curl -s -X POST https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendMessage \
+          -d chat_id=${{ secrets.TELEGRAM_CHAT_ID }} \
+          -d text="✅ सफलता! आपकी GitHub Machine अब 100% कनेक्ट हो चुकी है। अब हम Gumroad सेटअप के लिए तैयार हैं।"
