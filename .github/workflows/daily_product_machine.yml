@@ -1,4 +1,4 @@
-name: Final_Success_Machine_Fixed
+name: Ultimate_Verification_Final
 on:
   workflow_dispatch:
 
@@ -6,24 +6,28 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Create Product
+      - name: Create Product via Standard API
         run: |
-          # हमने यहाँ 'Bearer' शब्द का इस्तेमाल किया है जो आपके टोकन के लिए अनिवार्य है
+          # यह सबसे सटीक तरीका है जो आपकी तस्वीरों के साथ मेल खाता है
           RESPONSE=$(curl -s -X POST "https://api.gumroad.com/v2/products" \
             -H "Authorization: Bearer ${{ secrets.GUMROAD_TOKEN }}" \
-            -d "name=Automatic_Success_$(date +%H%M)" \
-            -d "price=1000" \
-            -d "description=Official Automated Product" \
-            -d "published=true")
+            -H "Content-Type: application/json" \
+            -d '{
+              "name": "Machine_Victory_$(date +%H%M)",
+              "price_cents": 1000,
+              "description": "Final Expert Attempt",
+              "published": true
+            }')
 
           echo "Response: $RESPONSE"
 
-          # टेलीग्राम पर सीधा संदेश
+          # टेलीग्राम पर साफ संदेश
           if [[ $RESPONSE == *"\"success\":true"* ]]; then
-             MSG="✅ जीत गए! नया प्रोडक्ट Gumroad पर बन चुका है।"
+             MSG="✅ अविश्वसनीय! मशीन आखिरकार चालू हो गई।"
+          elif [[ $RESPONSE == *"<!DOCTYPE html"* ]]; then
+             MSG="❌ अभी भी 404 (Page Not Found) आ रहा है। यह कोडिंग की नहीं, अकाउंट की दिक्कत लग रही है।"
           else
-             # अगर 404 आए तो यह साफ़ बताएगा
-             MSG="📊 रिपोर्ट: $(echo $RESPONSE | head -c 50)"
+             MSG="📊 जवाब: $RESPONSE"
           fi
 
           curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendMessage" \
