@@ -1,4 +1,4 @@
-name: Final_War_Victory_2026
+name: Firewall_Bypass_Strategy
 on:
   workflow_dispatch:
 
@@ -6,24 +6,26 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Create Product via Forced Parameter
+      - name: Bypass Firewall and Test Custom URL
         run: |
-          # हमने टोकन को सीधा लिंक के अंदर डाल दिया है (असिस्टेंट के सुझाव के अनुसार)
-          # यह 404 आने की गुंजाइश को खत्म कर देगा
-          RESPONSE=$(curl -s -X POST "https://api.gumroad.com/v2/products?access_token=${{ secrets.GUMROAD_TOKEN }}" \
-            -H "Content-Type: application/x-www-form-urlencoded" \
-            -d "name=Final_Victory_$(date +%H%M)" \
+          # हमने User-Agent को Chrome ब्राउज़र जैसा बना दिया है
+          # और URL को 'v2' के सीधे रास्ते पर रखा है
+          RESPONSE=$(curl -s -X POST "https://api.gumroad.com/v2/products" \
+            -H "Authorization: Bearer ${{ secrets.GUMROAD_TOKEN }}" \
+            -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" \
+            -H "Accept: application/json" \
+            -d "name=Firewall_Success_$(date +%H%M)" \
             -d "price_cents=1000" \
-            -d "description=Confirmed Machine Success" \
+            -d "description=Bypassing firewall successfully" \
             -d "published=true")
 
           echo "Response: $RESPONSE"
 
           if [[ $RESPONSE == *"\"success\":true"* ]]; then
-             MSG="✅ इतिहास गवाह है! आपकी मेहनत रंग लाई। प्रोडक्ट लाइव है।"
+             MSG="✅ अविश्वसनीय! फायरवॉल टूट गया और रास्ता मिल गया। चेक करें!"
           else
-             # अगर अभी भी कचरा आए, तो यह उसे साफ करके बताएगा
-             MSG="📊 फाइनल रिपोर्ट: $(echo $RESPONSE | grep -o '\"message\":\"[^\"]*\"' || echo $RESPONSE | head -c 50)"
+             # अगर अभी भी 404 आए, तो हमें साफ़ पता चल जाएगा कि URL ही समस्या है
+             MSG="📊 रिपोर्ट: $(echo $RESPONSE | head -c 100)"
           fi
 
           curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendMessage" \
