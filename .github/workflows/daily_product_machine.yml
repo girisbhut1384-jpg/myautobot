@@ -1,4 +1,4 @@
-name: Ultimate_Verification_Final
+name: Gumroad_Final_Victory_2026
 on:
   workflow_dispatch:
 
@@ -6,28 +6,26 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Create Product via Standard API
+      - name: Create Product via Personal Token
         run: |
-          # यह सबसे सटीक तरीका है जो आपकी तस्वीरों के साथ मेल खाता है
+          # असिस्टेंट के मुताबिक: access_token को सीधे -d (डेटा) में भेजना है
+          # और 'name' और 'price_cents' का इस्तेमाल करना है
           RESPONSE=$(curl -s -X POST "https://api.gumroad.com/v2/products" \
-            -H "Authorization: Bearer ${{ secrets.GUMROAD_TOKEN }}" \
-            -H "Content-Type: application/json" \
-            -d '{
-              "name": "Machine_Victory_$(date +%H%M)",
-              "price_cents": 1000,
-              "description": "Final Expert Attempt",
-              "published": true
-            }')
+            -d "access_token=${{ secrets.GUMROAD_TOKEN }}" \
+            -d "name=Victory_Product_$(date +%H%M)" \
+            -d "price_cents=1000" \
+            -d "description=Product created via verified assistant method" \
+            -d "published=true")
 
           echo "Response: $RESPONSE"
 
-          # टेलीग्राम पर साफ संदेश
+          # टेलीग्राम पर साफ रिपोर्ट
           if [[ $RESPONSE == *"\"success\":true"* ]]; then
-             MSG="✅ अविश्वसनीय! मशीन आखिरकार चालू हो गई।"
-          elif [[ $RESPONSE == *"<!DOCTYPE html"* ]]; then
-             MSG="❌ अभी भी 404 (Page Not Found) आ रहा है। यह कोडिंग की नहीं, अकाउंट की दिक्कत लग रही है।"
+             MSG="✅ अविश्वसनीय! असिस्टेंट का तरीका काम कर गया। प्रोडक्ट लाइव है!"
           else
-             MSG="📊 जवाब: $RESPONSE"
+             # अगर अभी भी दिक्कत हो तो पूरा जवाब भेजें ताकि हम देख सकें
+             CLEAN=$(echo $RESPONSE | head -c 100)
+             MSG="📊 रिपोर्ट: $CLEAN"
           fi
 
           curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendMessage" \
