@@ -1,23 +1,25 @@
-name: 100_Percent_Final_Success
+name: 100_Percent_Final_Fix
 on:
   workflow_dispatch:
 
 jobs:
-  build:
+  run_machine:
     runs-on: ubuntu-latest
     steps:
-      - name: Send Command to Gumroad
+      - name: Command to Gumroad
         run: |
-          # हमने यहाँ से हर वो चीज़ हटा दी है जिससे एरर आ सकता था
-          RESPONSE=$(curl -s -X POST https://api.gumroad.com/v2/products \
+          # सीधा कमांड और जवाब रिकॉर्ड करना
+          OUTPUT=$(curl -s -X POST https://api.gumroad.com/v2/products \
+            -H "Content-Type: application/x-www-form-urlencoded" \
             -d "access_token=${{ secrets.GUMROAD_TOKEN }}" \
-            -d "name=ULTIMATE_SUCCESS_$(date +%H%M)" \
-            -d "price=1000" \
-            -d "description=Official Automated Product" \
+            -d "name=AI_FINAL_FIX_$(date +%H%M)" \
+            -d "price=500" \
+            -d "description=Master Guide" \
             -d "published=true")
-
-          # टेलीग्राम पर सीधा कच्चा चिट्ठा भेजना
+          
+          echo "Full Response: $OUTPUT"
+          
+          # टेलीग्राम पर सीधा कच्चा जवाब भेजना (बिना किसी फ़िल्टर के)
           curl -s -X POST https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendMessage \
           -d chat_id=${{ secrets.TELEGRAM_CHAT_ID }} \
-          -d text="📊 *Gumroad Report:* %0A%0A$RESPONSE" \
-          -d parse_mode="Markdown"
+          -d text="🤖 मशीन रिपोर्ट: $OUTPUT"
