@@ -1,31 +1,48 @@
-name: Firewall_Bypass_Strategy
+name: Lemon_Squeezy_Victory_Final
 on:
   workflow_dispatch:
 
 jobs:
-  build:
+  create_product:
     runs-on: ubuntu-latest
     steps:
-      - name: Bypass Firewall and Test Custom URL
+      - name: Create Premium Product
         run: |
-          # हमने User-Agent को Chrome ब्राउज़र जैसा बना दिया है
-          # और URL को 'v2' के सीधे रास्ते पर रखा है
-          RESPONSE=$(curl -s -X POST "https://api.gumroad.com/v2/products" \
-            -H "Authorization: Bearer ${{ secrets.GUMROAD_TOKEN }}" \
-            -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" \
-            -H "Accept: application/json" \
-            -d "name=Firewall_Success_$(date +%H%M)" \
-            -d "price_cents=1000" \
-            -d "description=Bypassing firewall successfully" \
-            -d "published=true")
+          # Lemon Squeezy API v1 के लिए एकदम सटीक फॉर्मेट
+          # ID: 136979 आपके स्क्रीनशॉट से कन्फर्म की गई है
+          RESPONSE=$(curl -s -X POST "https://api.lemonsqueezy.com/v1/products" \
+            -H "Accept: application/vnd.api+json" \
+            -H "Content-Type: application/vnd.api+json" \
+            -H "Authorization: Bearer ${{ secrets.LEMON_SQUEEZY_TOKEN }}" \
+            -d '{
+              "data": {
+                "type": "products",
+                "attributes": {
+                  "name": "Premium High-Value Product",
+                  "description": "Premium Digital Asset worth $49",
+                  "price": 4900,
+                  "status": "published"
+                },
+                "relationships": {
+                  "store": {
+                    "data": {
+                      "type": "stores",
+                      "id": "136979"
+                    }
+                  }
+                }
+              }
+            }')
 
           echo "Response: $RESPONSE"
 
-          if [[ $RESPONSE == *"\"success\":true"* ]]; then
-             MSG="✅ अविश्वसनीय! फायरवॉल टूट गया और रास्ता मिल गया। चेक करें!"
+          # टेलीग्राम पर जीत की खबर
+          if [[ $RESPONSE == *"\"type\":\"products\""* ]]; then
+             MSG="✅ विजय! Lemon Squeezy ने प्रोडक्ट स्वीकार कर लिया है। अब कमाई शुरू!"
           else
-             # अगर अभी भी 404 आए, तो हमें साफ़ पता चल जाएगा कि URL ही समस्या है
-             MSG="📊 रिपोर्ट: $(echo $RESPONSE | head -c 100)"
+             # अगर कोई एरर आए तो उसका मैसेज निकालें
+             ERR_MSG=$(echo $RESPONSE | grep -o '\"detail\":\"[^\"]*\"' | cut -d'\"' -f4 || echo "Unknown Error")
+             MSG="❌ रिपोर्ट: $ERR_MSG"
           fi
 
           curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendMessage" \
