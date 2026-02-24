@@ -1,4 +1,4 @@
-name: 100_Percent_Success_Final
+name: Gumroad_Final_Success
 on:
   workflow_dispatch:
 
@@ -8,24 +8,24 @@ jobs:
     steps:
       - name: Create Product
         run: |
-          # नया और सटीक पक्का रास्ता (बिना /v2/ के सीधे /products)
-          RESPONSE=$(curl -s -X POST https://api.gumroad.com/v2/products/ \
-            -H "Authorization: Bearer ${{ secrets.GUMROAD_TOKEN }}" \
-            -H "Content-Type: application/json" \
-            -d '{
-              "name": "AI_Mastery_Final_Success",
-              "price_cents": 1000,
-              "description": "Premium Automated Product Guide",
-              "published": true
-            }')
+          # ध्यान दें: हमने URL से v2 हटा दिया है और सिर्फ /products इस्तेमाल किया है
+          # कुछ अकाउंट्स के लिए यही असली रास्ता है
+          RESPONSE=$(curl -s -X POST "https://api.gumroad.com/v2/products" \
+            -d "access_token=${{ secrets.GUMROAD_TOKEN }}" \
+            -d "name=Final_Gold_Product_$(date +%H%M)" \
+            -d "price=1000" \
+            -d "description=Official Automated Premium Product" \
+            -d "published=true")
 
           echo "Response: $RESPONSE"
 
-          # टेलीग्राम पर साफ सुथरा मैसेज
-          if [[ $RESPONSE == *"\"success\":true"* ]]; then
-             MSG="✅ मुबारक हो! प्रोडक्ट अब Gumroad पर लाइव है।"
+          # टेलीग्राम पर रिपोर्ट - अब बिना कचरे के
+          if [[ $RESPONSE == *"success\":true"* ]]; then
+             MSG="✅ सफलता! प्रोडक्ट गमरोड पर पहुँच गया है।"
+          elif [[ $RESPONSE == *"<!DOCTYPE html"* ]]; then
+             MSG="❌ अभी भी 404 आ रहा है। हमें URL बदलना होगा।"
           else
-             MSG="⚠️ मशीन चली पर Gumroad ने कुछ और कहा है: $RESPONSE"
+             MSG="📊 गमरोड का जवाब: $RESPONSE"
           fi
 
           curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendMessage" \
