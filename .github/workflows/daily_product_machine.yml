@@ -1,9 +1,6 @@
 name: 100% Auto Product Machine
-
 on:
-  workflow_dispatch: # अभी हाथ से चलाने के लिए
-  schedule:
-    - cron: '0 10 * * *' # हर दिन सुबह 10:00 बजे अपने आप चलेगा
+  workflow_dispatch:
 
 jobs:
   build_and_publish:
@@ -11,23 +8,20 @@ jobs:
     steps:
       - name: Generate Product and Publish
         run: |
-          # 1. आज का ट्रेंडिंग टॉपिक और कंटेंट (AI Solutions for Small Business)
           PRODUCT_NAME="AI Business Growth Kit 2026"
-          PRODUCT_PRICE=1500 # कीमत (पैसे में, यानी 15.00 USD)
-          DESCRIPTION="यह एक प्रीमियम गाइड है जो आपके छोटे बिजनेस को AI की मदद से 10x स्केल करने में मदद करेगी।"
+          PRODUCT_PRICE=1500
+          DESCRIPTION="Premium AI Guide for Small Business Success."
 
-          # 2. Gumroad पर प्रोडक्ट पब्लिश करना
-          RESPONSE=$(curl -s -X POST https://api.gumroad.com/v2/products \
+          # प्रोडक्ट बनाने की कमांड
+          curl -s -X POST https://api.gumroad.com/v2/products \
             -d "access_token=${{ secrets.GUMROAD_TOKEN }}" \
             -d "name=$PRODUCT_NAME" \
             -d "price=$PRODUCT_PRICE" \
             -d "description=$DESCRIPTION" \
-            -d "published=true")
+            -d "published=true"
 
-          # 3. टेलीग्राम पर मार्केटिंग मैसेज भेजना
-          PRODUCT_URL=$(echo $RESPONSE | jq -r '.product.short_url')
-          
+          # टेलीग्राम पर सीधा मैसेज भेजना
           curl -s -X POST https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendMessage \
           -d chat_id=${{ secrets.TELEGRAM_CHAT_ID }} \
-          -d text="🚀 *नया प्रीमियम प्रोडक्ट लाइव!* %0A%0A📦 नाम: $PRODUCT_NAME %0A💰 कीमत: $15 %0A🔗 अभी खरीदें: $PRODUCT_URL %0A%0A✅ यह मैसेज ऑटोमैटिक मशीन द्वारा भेजा गया है।" \
+          -d text="🚀 *नया प्रोडक्ट लाइव!* %0A%0A📦 नाम: $PRODUCT_NAME %0A💰 कीमत: $15 %0A✅ ऑटोमेशन सफल रहा!" \
           -d parse_mode="Markdown"
