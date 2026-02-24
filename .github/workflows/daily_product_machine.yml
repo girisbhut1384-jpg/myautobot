@@ -1,4 +1,4 @@
-name: Gumroad_Final_Success
+name: 100_Percent_Final_Winner
 on:
   workflow_dispatch:
 
@@ -8,24 +8,22 @@ jobs:
     steps:
       - name: Create Product
         run: |
-          # ध्यान दें: हमने URL से v2 हटा दिया है और सिर्फ /products इस्तेमाल किया है
-          # कुछ अकाउंट्स के लिए यही असली रास्ता है
-          RESPONSE=$(curl -s -X POST "https://api.gumroad.com/v2/products" \
+          # हमने URL को बिल्कुल सही फॉर्मेट में लिखा है
+          RESPONSE=$(curl -s -X POST "https://api.gumroad.com/v2/products/" \
+            -H "Content-Type: application/x-www-form-urlencoded" \
             -d "access_token=${{ secrets.GUMROAD_TOKEN }}" \
-            -d "name=Final_Gold_Product_$(date +%H%M)" \
+            -d "name=Final_Winner_$(date +%H%M)" \
             -d "price=1000" \
-            -d "description=Official Automated Premium Product" \
+            -d "description=Premium Automation" \
             -d "published=true")
 
           echo "Response: $RESPONSE"
 
-          # टेलीग्राम पर रिपोर्ट - अब बिना कचरे के
+          # टेलीग्राम पर सीधा और सच्चा मैसेज
           if [[ $RESPONSE == *"success\":true"* ]]; then
-             MSG="✅ सफलता! प्रोडक्ट गमरोड पर पहुँच गया है।"
-          elif [[ $RESPONSE == *"<!DOCTYPE html"* ]]; then
-             MSG="❌ अभी भी 404 आ रहा है। हमें URL बदलना होगा।"
+             MSG="✅ जीत गए! प्रोडक्ट अब Gumroad पर है।"
           else
-             MSG="📊 गमरोड का जवाब: $RESPONSE"
+             MSG="📊 रिपोर्ट: $RESPONSE"
           fi
 
           curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendMessage" \
