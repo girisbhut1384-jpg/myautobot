@@ -6,17 +6,17 @@ jobs:
   build_and_publish:
     runs-on: ubuntu-latest
     steps:
-      - name: Create Product
+      - name: Create Draft Product
         run: |
           curl -X POST https://api.gumroad.com/v2/products \
             -d "access_token=${{ secrets.GUMROAD_TOKEN }}" \
-            -d "name=AI_Business_Mastery_$(date +%H%M)" \
+            -d "name=AI_Mastery_Test_$(date +%H%M)" \
             -d "price=1000" \
-            -d "description=Your Premium AI Guide" \
-            -d "published=true"
+            -d "description=Official Premium Guide" \
+            -d "published=false"
           
-      - name: Send Telegram Update
+      - name: Telegram Notification
         run: |
           curl -s -X POST https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendMessage \
           -d chat_id=${{ secrets.TELEGRAM_CHAT_ID }} \
-          -d text="✅ मशीन सफलतापूर्वक चली! कृपया Gumroad पेज को रिफ्रेश करके देखें।"
+          -d text="✅ मशीन चल गई है! अब Gumroad पर 'Drafts' चेक करें।"
