@@ -1,4 +1,4 @@
-name: Gumroad_Final_Victory_2026
+name: Ultimate_Force_Final
 on:
   workflow_dispatch:
 
@@ -6,24 +6,23 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Create Product via Personal Token
+      - name: Create Product via Direct Endpoint
         run: |
-          # असिस्टेंट के मुताबिक: access_token को सीधे -d (डेटा) में भेजना है
-          # और 'name' और 'price_cents' का इस्तेमाल करना है
-          RESPONSE=$(curl -s -X POST "https://api.gumroad.com/v2/products" \
+          # हमने api. शब्द को हटा दिया है और पुराने लिंक का उपयोग किया है
+          # यह वह आखिरी रास्ता है जो 404 को बाईपास कर सकता है
+          RESPONSE=$(curl -s -X POST "https://gumroad.com/api/v2/products" \
             -d "access_token=${{ secrets.GUMROAD_TOKEN }}" \
-            -d "name=Victory_Product_$(date +%H%M)" \
-            -d "price_cents=1000" \
-            -d "description=Product created via verified assistant method" \
+            -d "name=Final_Victory_$(date +%H%M)" \
+            -d "price=1000" \
+            -d "description=Automated Success" \
             -d "published=true")
 
           echo "Response: $RESPONSE"
 
-          # टेलीग्राम पर साफ रिपोर्ट
           if [[ $RESPONSE == *"\"success\":true"* ]]; then
-             MSG="✅ अविश्वसनीय! असिस्टेंट का तरीका काम कर गया। प्रोडक्ट लाइव है!"
+             MSG="✅ अविश्वसनीय! आखिरकार सही रास्ता मिल गया। चेक करें!"
           else
-             # अगर अभी भी दिक्कत हो तो पूरा जवाब भेजें ताकि हम देख सकें
+             # अगर अभी भी 404 आए, तो हमें असिस्टेंट को ये सबूत भेजना होगा
              CLEAN=$(echo $RESPONSE | head -c 100)
              MSG="📊 रिपोर्ट: $CLEAN"
           fi
