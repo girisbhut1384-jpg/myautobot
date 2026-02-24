@@ -1,4 +1,4 @@
-name: Ultimate_Final_Fix_2026
+name: Super_Direct_Success
 on:
   workflow_dispatch:
 
@@ -8,19 +8,17 @@ jobs:
     steps:
       - name: Create Product
         run: |
-          # नया तरीका: access_token को बॉडी के अंदर भेजना
-          RESPONSE=$(curl -s -X POST "https://api.gumroad.com/v2/products" \
+          # V1 API का सीधा इस्तेमाल - सबसे आसान और पक्का
+          curl -X POST https://api.gumroad.com/v2/products \
             -d "access_token=${{ secrets.GUMROAD_TOKEN }}" \
-            -d "name=Final_Success_Product_$(date +%H%M)" \
+            -d "name=AI_Ebook_$(date +%H%M)" \
             -d "price=1000" \
-            -d "description=Automated Premium Content" \
-            -d "countries[]=IN" \
-            -d "published=true")
+            -d "description=Official Automated Guide" \
+            -d "published=true"
 
-          echo "Gumroad Response: $RESPONSE"
-
-          # टेलीग्राम पर रिपोर्ट
-          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendMessage" \
-          -d chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" \
-          -d text="📊 *मशीन की अंतिम रिपोर्ट:* %0A%0A$RESPONSE" \
-          -d parse_mode="Markdown"
+      - name: Simple Telegram Notify
+        run: |
+          # बिना किसी कोडिंग के सीधा सा मैसेज
+          curl -s -X POST https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendMessage \
+          -d chat_id=${{ secrets.TELEGRAM_CHAT_ID }} \
+          -d text="✅ मशीन ने गमरोड पर प्रोडक्ट बनाने का हुक्म दे दिया है। कृपया पेज चेक करें!"
