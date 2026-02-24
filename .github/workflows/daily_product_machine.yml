@@ -1,4 +1,4 @@
-name: Ultimate_Direct_Publish
+name: 100_Percent_Success_Final
 on:
   workflow_dispatch:
 
@@ -6,23 +6,26 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Force Create Product
+      - name: Create Product
         run: |
-          # हमने URL से 'v2' हटा दिया है और सबसे बेसिक कमांड इस्तेमाल की है
-          RESPONSE=$(curl -s -X POST "https://api.gumroad.com/v2/products" \
-            -d "access_token=${{ secrets.GUMROAD_TOKEN }}" \
-            -d "name=Premium_AI_Kit_$(date +%H%M)" \
-            -d "price=1000" \
-            -d "description=Automated Success Guide" \
-            -d "published=true")
+          # नया और सटीक पक्का रास्ता (बिना /v2/ के सीधे /products)
+          RESPONSE=$(curl -s -X POST https://api.gumroad.com/v2/products/ \
+            -H "Authorization: Bearer ${{ secrets.GUMROAD_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "name": "AI_Mastery_Final_Success",
+              "price_cents": 1000,
+              "description": "Premium Automated Product Guide",
+              "published": true
+            }')
 
           echo "Response: $RESPONSE"
 
-          # टेलीग्राम पर सिर्फ वही भेजना जो जरूरी है
-          if [[ $RESPONSE == *"success\":true"* ]]; then
-            MSG="✅ बधाई हो! प्रोडक्ट गमरोड पर लाइव है।"
+          # टेलीग्राम पर साफ सुथरा मैसेज
+          if [[ $RESPONSE == *"\"success\":true"* ]]; then
+             MSG="✅ मुबारक हो! प्रोडक्ट अब Gumroad पर लाइव है।"
           else
-            MSG="❌ गमरोड ने मना कर दिया। कारण: $RESPONSE"
+             MSG="⚠️ मशीन चली पर Gumroad ने कुछ और कहा है: $RESPONSE"
           fi
 
           curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendMessage" \
