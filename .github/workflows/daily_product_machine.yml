@@ -1,4 +1,4 @@
-name: Gumroad_Final_Winner_2026
+name: Final_Expert_Solution_2026
 on:
   workflow_dispatch:
 
@@ -8,24 +8,27 @@ jobs:
     steps:
       - name: Create Product
         run: |
-          # हमने URL के आखिर में से /v2/ हटाकर सीधा रास्ता आज़माया है
-          # और टोकन को सबसे सुरक्षित तरीके से भेजा है
-          RESPONSE=$(curl -s -X POST "https://api.gumroad.com/v2/products" \
-            -H "Authorization: Bearer ${{ secrets.GUMROAD_TOKEN }}" \
-            -d "name=Automatic_Success_$(date +%H%M)" \
-            -d "price=1000" \
-            -d "description=Official_Automated_Product" \
-            -d "published=true")
+          # एक्सपर्ट तरीका: URL के अंत में स्लैश और टोकन भेजने का नया तरीका
+          RESPONSE=$(curl -s -X POST "https://api.gumroad.com/v2/products/" \
+            --header "Authorization: Bearer ${{ secrets.GUMROAD_TOKEN }}" \
+            --header "Content-Type: application/json" \
+            --data '{
+              "name": "Success_Product_Final",
+              "price_cents": 1000,
+              "description": "Automated via API",
+              "published": true
+            }')
 
           echo "Full Response: $RESPONSE"
 
-          # टेलीग्राम पर मैसेज - अब HTML कचरा नहीं आएगा
-          if [[ $RESPONSE == *"success\":true"* ]]; then
-             MSG="✅ धमाका! प्रोडक्ट अब आपके Gumroad पर लाइव है।"
+          # टेलीग्राम पर साफ़ संदेश
+          if [[ $RESPONSE == *"\"success\":true"* ]]; then
+             MSG="✅ मशीन चालू हो गई है! प्रोडक्ट बन गया।"
           elif [[ $RESPONSE == *"<!DOCTYPE html"* ]]; then
-             MSG="❌ अभी भी 404 आ रहा है। इसका मतलब है 'v2' शब्द हटाना होगा।"
+             # अगर अभी भी 404 आए, तो ये बिना v2 वाला फाइनल ट्राई है
+             MSG="⚠️ अभी भी पुराना लिंक फेल हो रहा है। हमें बिना v2 वाला लिंक चाहिए।"
           else
-             MSG="📊 गमरोड का जवाब: $RESPONSE"
+             MSG="📊 रिपोर्ट: $RESPONSE"
           fi
 
           curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendMessage" \
