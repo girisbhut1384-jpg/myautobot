@@ -1,4 +1,4 @@
-name: Ultimate_Force_Final
+name: Final_War_Victory_2026
 on:
   workflow_dispatch:
 
@@ -6,25 +6,24 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Create Product via Direct Endpoint
+      - name: Create Product via Forced Parameter
         run: |
-          # हमने api. शब्द को हटा दिया है और पुराने लिंक का उपयोग किया है
-          # यह वह आखिरी रास्ता है जो 404 को बाईपास कर सकता है
-          RESPONSE=$(curl -s -X POST "https://gumroad.com/api/v2/products" \
-            -d "access_token=${{ secrets.GUMROAD_TOKEN }}" \
+          # हमने टोकन को सीधा लिंक के अंदर डाल दिया है (असिस्टेंट के सुझाव के अनुसार)
+          # यह 404 आने की गुंजाइश को खत्म कर देगा
+          RESPONSE=$(curl -s -X POST "https://api.gumroad.com/v2/products?access_token=${{ secrets.GUMROAD_TOKEN }}" \
+            -H "Content-Type: application/x-www-form-urlencoded" \
             -d "name=Final_Victory_$(date +%H%M)" \
-            -d "price=1000" \
-            -d "description=Automated Success" \
+            -d "price_cents=1000" \
+            -d "description=Confirmed Machine Success" \
             -d "published=true")
 
           echo "Response: $RESPONSE"
 
           if [[ $RESPONSE == *"\"success\":true"* ]]; then
-             MSG="✅ अविश्वसनीय! आखिरकार सही रास्ता मिल गया। चेक करें!"
+             MSG="✅ इतिहास गवाह है! आपकी मेहनत रंग लाई। प्रोडक्ट लाइव है।"
           else
-             # अगर अभी भी 404 आए, तो हमें असिस्टेंट को ये सबूत भेजना होगा
-             CLEAN=$(echo $RESPONSE | head -c 100)
-             MSG="📊 रिपोर्ट: $CLEAN"
+             # अगर अभी भी कचरा आए, तो यह उसे साफ करके बताएगा
+             MSG="📊 फाइनल रिपोर्ट: $(echo $RESPONSE | grep -o '\"message\":\"[^\"]*\"' || echo $RESPONSE | head -c 50)"
           fi
 
           curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendMessage" \
