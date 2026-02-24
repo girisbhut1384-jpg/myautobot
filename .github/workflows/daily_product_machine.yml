@@ -1,52 +1,24 @@
-name: 100% Super Advance Product Machine
-
+name: Final_Success_Machine
 on:
-  workflow_dispatch: # बटन दबाते ही चलेगा
-  schedule:
-    - cron: '0 10 * * *' # रोज़ सुबह 10 बजे अपने आप
+  workflow_dispatch:
 
 jobs:
-  launch_product:
+  launch:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      - name: Generate Premium Content (AI Logic)
+      - name: Force Publish Product
         run: |
-          # यह स्टेप खुद एक गाइड फाइल बनाएगा
-          echo "यह आपकी प्रीमियम एआई बिजनेस गाइड है। इसमें 10 गुप्त तरीके दिए गए हैं।" > premium_guide.txt
-          echo "आज की तारीख: $(date)" >> premium_guide.txt
-
-      - name: Publish to Gumroad and Telegram
-        run: |
-          # 1. नया प्रोडक्ट बनाना (Unique Name के साथ)
-          PRODUCT_NAME="AI_Success_Kit_$(date +'%d_%b')"
-          
-          RESPONSE=$(curl -s -X POST https://api.gumroad.com/v2/products \
+          # बिना किसी तामझाम के सीधा कमांड
+          curl -X POST https://api.gumroad.com/v2/products \
             -d "access_token=${{ secrets.GUMROAD_TOKEN }}" \
-            -d "name=$PRODUCT_NAME" \
+            -d "name=AI_Final_Success_$(date +%H%M)" \
             -d "price=1000" \
-            -d "description=यह एक ऑटो-जेनरेटेड प्रीमियम डिजिटल प्रोडक्ट है।" \
-            -d "published=true")
+            -d "description=Official Automated Digital Product" \
+            -d "published=true"
           
-          # जवाब से ID और URL निकालना
-          PRODUCT_ID=$(echo $RESPONSE | jq -r '.product.id')
-          SHORT_URL=$(echo $RESPONSE | jq -r '.product.short_url')
-
-          # 2. प्रोडक्ट के साथ फाइल जोड़ना (ताकि खरीदार को सामान मिले)
-          curl -s -X POST "https://api.gumroad.com/v2/products/$PRODUCT_ID/files" \
-            -F "access_token=${{ secrets.GUMROAD_TOKEN }}" \
-            -F "file=@premium_guide.txt"
-
-          # 3. टेलीग्राम पर मार्केटिंग धमाका
-          if [[ "$PRODUCT_ID" != "null" ]]; then
-            MSG="🚀 *नया प्रीमियम प्रोडक्ट लाइव!* %0A%0A📦 नाम: $PRODUCT_NAME %0A🔗 खरीदने के लिए यहाँ क्लिक करें: $SHORT_URL %0A%0A✅ ऑटोमेशन मशीन सफल रही।"
-          else
-            MSG="❌ मशीन में गड़बड़! गमरोड ने कहा: $(echo $RESPONSE | jq -r '.message')"
-          fi
-
+      - name: Telegram Report
+        run: |
           curl -s -X POST https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendMessage \
           -d chat_id=${{ secrets.TELEGRAM_CHAT_ID }} \
-          -d text="$MSG" \
+          -d text="🚀 *मिशन सफल!* %0Aमशीन ने गमरोड को सीधा कमांड भेज दिया है। अपनी प्रोडक्ट लिस्ट चेक करें।" \
           -d parse_mode="Markdown"
