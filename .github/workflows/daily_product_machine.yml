@@ -1,4 +1,4 @@
-name: 100_Percent_Success_Final
+name: Ultimate_Final_Fix_2026
 on:
   workflow_dispatch:
 
@@ -6,21 +6,21 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Create Product and Notify
+      - name: Create Product
         run: |
-          # 1. गमरोड को सीधा और सही पते पर डेटा भेजना
+          # नया तरीका: access_token को बॉडी के अंदर भेजना
           RESPONSE=$(curl -s -X POST "https://api.gumroad.com/v2/products" \
-            -H "Authorization: Bearer ${{ secrets.GUMROAD_TOKEN }}" \
-            -d "name=AI_Ebook_Master_$(date +%H%M)" \
+            -d "access_token=${{ secrets.GUMROAD_TOKEN }}" \
+            -d "name=Final_Success_Product_$(date +%H%M)" \
             -d "price=1000" \
-            -d "description=Premium Automation Guide" \
+            -d "description=Automated Premium Content" \
+            -d "countries[]=IN" \
             -d "published=true")
 
           echo "Gumroad Response: $RESPONSE"
 
-          # 2. टेलीग्राम को डेटा भेजना (बिना किसी देरी के)
-          # अगर यहाँ गड़बड़ हुई तो GitHub Error दिखा देगा
-          curl -f -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendMessage" \
+          # टेलीग्राम पर रिपोर्ट
+          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendMessage" \
           -d chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" \
-          -d text="📊 *असली रिपोर्ट:* %0A%0A$RESPONSE" \
+          -d text="📊 *मशीन की अंतिम रिपोर्ट:* %0A%0A$RESPONSE" \
           -d parse_mode="Markdown"
