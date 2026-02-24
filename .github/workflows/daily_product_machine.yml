@@ -1,4 +1,4 @@
-name: Ultimate_Gumroad_Success
+name: Machine_Final_Success
 on:
   workflow_dispatch:
 
@@ -8,22 +8,21 @@ jobs:
     steps:
       - name: Create Product
         run: |
-          # हमने URL को बिल्कुल नया और सीधा कर दिया है
-          # ध्यान दें: /v2 हटा दिया गया है
-          RESPONSE=$(curl -s -X POST "https://api.gumroad.com/products" \
+          # यह वही तरीका है जो आपके ब्राउज़र में चला
+          RESPONSE=$(curl -s -X POST "https://api.gumroad.com/v2/products" \
             -d "access_token=${{ secrets.GUMROAD_TOKEN }}" \
-            -d "name=AI_Ebook_Final_$(date +%H%M)" \
+            -d "name=Final_Success_Product_$(date +%H%M)" \
             -d "price=1000" \
-            -d "description=Master Automation Guide" \
+            -d "description=Automated Success" \
             -d "published=true")
 
           echo "Response: $RESPONSE"
 
-          # टेलीग्राम पर सिर्फ काम की रिपोर्ट
-          if [[ $RESPONSE == *"success\":true"* ]]; then
-             MSG="✅ धमाका! प्रोडक्ट गमरोड पर लाइव हो चुका है।"
+          # टेलीग्राम पर सीधा संदेश
+          if [[ $RESPONSE == *"\"success\":true"* ]]; then
+             MSG="✅ मुबारक हो! मशीन ने गमरोड के अंदर घुसकर प्रोडक्ट बना दिया है।"
           else
-             MSG="📊 गमरोड का नया जवाब: $RESPONSE"
+             MSG="📊 गमरोड का जवाब: $RESPONSE"
           fi
 
           curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendMessage" \
