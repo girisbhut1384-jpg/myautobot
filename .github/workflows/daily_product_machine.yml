@@ -6,22 +6,17 @@ jobs:
   build_and_publish:
     runs-on: ubuntu-latest
     steps:
-      - name: Generate Product and Publish
+      - name: Create Product
         run: |
-          PRODUCT_NAME="AI Business Growth Kit 2026"
-          PRODUCT_PRICE=1500
-          DESCRIPTION="Premium AI Guide for Small Business Success."
-
-          # प्रोडक्ट बनाने की कमांड
-          curl -s -X POST https://api.gumroad.com/v2/products \
+          curl -X POST https://api.gumroad.com/v2/products \
             -d "access_token=${{ secrets.GUMROAD_TOKEN }}" \
-            -d "name=$PRODUCT_NAME" \
-            -d "price=$PRODUCT_PRICE" \
-            -d "description=$DESCRIPTION" \
+            -d "name=AI_Business_Mastery_$(date +%H%M)" \
+            -d "price=1000" \
+            -d "description=Your Premium AI Guide" \
             -d "published=true"
-
-          # टेलीग्राम पर सीधा मैसेज भेजना
+          
+      - name: Send Telegram Update
+        run: |
           curl -s -X POST https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendMessage \
           -d chat_id=${{ secrets.TELEGRAM_CHAT_ID }} \
-          -d text="🚀 *नया प्रोडक्ट लाइव!* %0A%0A📦 नाम: $PRODUCT_NAME %0A💰 कीमत: $15 %0A✅ ऑटोमेशन सफल रहा!" \
-          -d parse_mode="Markdown"
+          -d text="✅ मशीन सफलतापूर्वक चली! कृपया Gumroad पेज को रिफ्रेश करके देखें।"
