@@ -1,4 +1,4 @@
-name: Lemon_Squeezy_Victory_Final
+name: Lemon_Squeezy_Deep_Debug
 on:
   workflow_dispatch:
 
@@ -6,11 +6,10 @@ jobs:
   create_product:
     runs-on: ubuntu-latest
     steps:
-      - name: Create Premium Product
+      - name: Create Product with Full Report
         run: |
-          # Lemon Squeezy API v1 के लिए एकदम सटीक फॉर्मेट
-          # ID: 136979 आपके स्क्रीनशॉट से कन्फर्म की गई है
-          RESPONSE=$(curl -s -X POST "https://api.lemonsqueezy.com/v1/products" \
+          # हम इस बार पूरा रिस्पॉन्स कैप्चर करेंगे
+          RESPONSE=$(curl -s -i -X POST "https://api.lemonsqueezy.com/v1/products" \
             -H "Accept: application/vnd.api+json" \
             -H "Content-Type: application/vnd.api+json" \
             -H "Authorization: Bearer ${{ secrets.LEMON_SQUEEZY_TOKEN }}" \
@@ -18,8 +17,8 @@ jobs:
               "data": {
                 "type": "products",
                 "attributes": {
-                  "name": "Premium High-Value Product",
-                  "description": "Premium Digital Asset worth $49",
+                  "name": "Premium Asset",
+                  "description": "High Value Product",
                   "price": 4900,
                   "status": "published"
                 },
@@ -34,15 +33,13 @@ jobs:
               }
             }')
 
-          echo "Response: $RESPONSE"
-
-          # टेलीग्राम पर जीत की खबर
-          if [[ $RESPONSE == *"\"type\":\"products\""* ]]; then
-             MSG="✅ विजय! Lemon Squeezy ने प्रोडक्ट स्वीकार कर लिया है। अब कमाई शुरू!"
+          # रिस्पॉन्स की पहली 200 लाइनें टेलीग्राम के लिए साफ़ करना
+          REPORT=$(echo "$RESPONSE" | tail -n 5)
+          
+          if [[ "$RESPONSE" == *"201 Created"* ]]; then
+             MSG="✅ सफलता! प्रोडक्ट बन गया है।"
           else
-             # अगर कोई एरर आए तो उसका मैसेज निकालें
-             ERR_MSG=$(echo $RESPONSE | grep -o '\"detail\":\"[^\"]*\"' | cut -d'\"' -f4 || echo "Unknown Error")
-             MSG="❌ रिपोर्ट: $ERR_MSG"
+             MSG="⚠️ सर्वर की रिपोर्ट: $REPORT"
           fi
 
           curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_TOKEN }}/sendMessage" \
