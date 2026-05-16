@@ -1,12 +1,16 @@
 import os
 import json
-import requests
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
+import requests
 
 # GitHub Secrets से चाबियां लेना
 TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN')
 TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
+
+# यहाँ आप अपना असली अमेज़ॉन अफिलिएट लिंक डाल सकते हैं 
+AFFILIATE_LINK = "\n\n🛒 मेरे उपकरण खरीदें: https://amzn.to/YOUR_LINK_HERE"
+SEO_TAGS = "\n#GBYoutuber #MysticUniverse #Trending #Viral"
 
 def send_telegram(message):
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
@@ -14,10 +18,8 @@ def send_telegram(message):
     requests.post(url, json=payload)
 
 def get_youtube_service(token_env_var):
-    # JSON फाइल और रिफ्रेश टोकन को मिलाकर यूट्यूब का दरवाजा खोलना
     client_secrets = json.loads(os.getenv('YT_CLIENT_SECRET_JSON'))['installed']
     refresh_token = os.getenv(token_env_var)
-    
     creds = Credentials(
         token=None,
         refresh_token=refresh_token,
@@ -27,28 +29,71 @@ def get_youtube_service(token_env_var):
     )
     return build('youtube', 'v3', credentials=creds)
 
-def check_all_channels():
-    report = "🚀 **AI यूट्यूब मैनेजर - सिस्टम लाइव रिपोर्ट**\n\n"
+def optimize_latest_video(youtube, channel_name):
+    try:
+        # चैनल की अपलोड प्लेलिस्ट खोजना
+        request = youtube.channels().list(part="contentDetails", mine=True)
+        response = request.execute()
+        uploads_playlist_id = response['items'][0]['contentDetails']['relatedPlaylists']['uploads']
+
+        # सबसे नया वीडियो निकालना
+        playlist_request = youtube.playlistItems().list(
+            part="snippet",
+            playlistId=uploads_playlist_id,
+            maxResults=1
+        )
+        playlist_response = playlist_request.execute()
+        
+        if not playlist_response['items']:
+            return f"⚠️ {channel_name} पर कोई वीडियो नहीं मिला।"
+
+        video_id = playlist_response['items'][0]['snippet']['resourceId']['videoId']
+        
+        # वीडियो का पूरा डेटा (Snippet) लेना
+        video_request = youtube.videos().list(part="snippet", id=video_id)
+        video_response = video_request.execute()
+        snippet = video_response['items'][0]['snippet']
+        
+        old_desc = snippet.get('description', '')
+        
+        # चेक करना कि लिंक पहले से तो नहीं है
+        if "amzn.to" not in old_desc:
+            new_desc = old_desc + AFFILIATE_LINK + SEO_TAGS
+            snippet['description'] = new_desc
+            
+            # यूट्यूब पर अपडेट करना
+            update_request = youtube.videos().update(
+                part="snippet",
+                body={
+                    "id": video_id,
+                    "snippet": snippet
+                }
+            )
+            update_request.execute()
+            return f"✅ **{channel_name}**: नया वीडियो ऑप्टिमाइज़ किया गया और अमेज़ॉन लिंक लगा दिए गए!"
+        else:
+            return f"⚡ **{channel_name}**: वीडियो में लिंक पहले से मौजूद हैं।"
+            
+    except Exception as e:
+        return f"❌ **{channel_name}** में एरर: वीडियो अपडेट नहीं हो सका।"
+
+def main():
+    report = "🚀 **AI मैनेजर: ऑटोमेशन और SEO रिपोर्ट**\n\n"
     tokens = ['YOUTUBE_REFRESH_TOKEN_1', 'YOUTUBE_REFRESH_TOKEN_2']
     
-    for idx, token_var in enumerate(tokens, 1):
+    for token_var in tokens:
         try:
             youtube = get_youtube_service(token_var)
-            # चैनल का डेटा निकालना
-            request = youtube.channels().list(part="snippet,statistics", mine=True)
-            response = request.execute()
-            
-            if response['items']:
-                channel_name = response['items'][0]['snippet']['title']
-                subs = response['items'][0]['statistics']['subscriberCount']
-                report += f"✅ **जीमेल {idx} कनेक्टेड!**\n   चैनल: {channel_name} (Subs: {subs})\n\n"
-            else:
-                report += f"⚠️ **जीमेल {idx}:** कोई चैनल नहीं मिला\n\n"
+            channel_req = youtube.channels().list(part="snippet", mine=True)
+            channel_res = channel_req.execute()
+            if channel_res['items']:
+                channel_name = channel_res['items'][0]['snippet']['title']
+                result = optimize_latest_video(youtube, channel_name)
+                report += result + "\n\n"
         except Exception as e:
-            report += f"❌ **जीमेल {idx} कनेक्शन फेल:** कृपया टोकन चेक करें\n\n"
-            
-    report += "🤖 **सिस्टम 100% एक्टिव है! सभी 10 चैनलों का ऑटोमेशन चालू हो गया है।**"
+            report += f"❌ टोकन {token_var} कनेक्शन फेल।\n\n"
+    
     send_telegram(report)
 
 if __name__ == "__main__":
-    check_all_channels()
+    main()
