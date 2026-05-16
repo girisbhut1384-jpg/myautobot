@@ -9,17 +9,23 @@ from googleapiclient.discovery import build
 TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN')
 TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
 
-# 🛒 Affiliate & Sales Links
 AMAZON_TAG = "girishbhut07-21"
-GUMROAD_LINK = "https://your_store.gumroad.com/l/ai-setup" # ⚠️ अपना असली गमरोड लिंक डालें
+GUMROAD_LINK = "https://your_store.gumroad.com/l/ai-setup" 
 
-# 🎯 10-चैनल मास्टर रणनीति
+# 🎯 10-चैनल स्मार्ट रणनीति (सही चैनलों पर सही लिंक)
 CHANNEL_STRATEGIES = {
-    "Gadget Pro": "AMAZON",         
-    "AI Automation Hub": "GUMROAD", 
-    "Creator AI Setup": "GUMROAD",  
-    "Future Tech AI": "GUMROAD"     
+    "GIRISH AI GADGET": "AMAZON",         
+    "FACELESS AI WEALTH": "GUMROAD", 
+    "AI AUTO PILOT EMPIRE": "GUMROAD",  
+    "ZEROTOUCH AI CREATOR": "GUMROAD"     
 }
+
+# 🔑 सभी 10 टोकन्स की लिस्ट
+ALL_TOKENS = [
+    'TOKEN_GBYOUTUBER', 'TOKEN_HEALTH', 'TOKEN_SUCCESS', 'TOKEN_SANATAN', 
+    'TOKEN_BOOK', 'TOKEN_MYSTERY', 'TOKEN_WEALTH', 'TOKEN_GADGET', 
+    'TOKEN_EMPIRE', 'TOKEN_ZEROTOUCH'
+]
 
 def send_telegram(message):
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
@@ -27,8 +33,11 @@ def send_telegram(message):
     requests.post(url, json=payload)
 
 def get_youtube_service(token_env_var):
-    client_secrets = json.loads(os.getenv('YT_CLIENT_SECRET_JSON'))['installed']
+    client_secrets_json = os.getenv('YT_CLIENT_SECRET_JSON')
     refresh_token = os.getenv(token_env_var)
+    if not refresh_token or not client_secrets_json:
+        return None 
+    client_secrets = json.loads(client_secrets_json)['installed']
     creds = Credentials(token=None, refresh_token=refresh_token, token_uri=client_secrets['token_uri'], client_id=client_secrets['client_id'], client_secret=client_secrets['client_secret'])
     return build('youtube', 'v3', credentials=creds)
 
@@ -44,8 +53,6 @@ def advanced_delete_manager(youtube, channel_name, playlist_id):
         if not playlist_res.get('items'): return f"⚠️ **{channel_name}**: कोई वीडियो नहीं है।"
         
         video_id = playlist_res['items'][0]['snippet']['resourceId']['videoId']
-        
-        # वीडियो का पूरा डेटा निकालना
         video_data = youtube.videos().list(part="snippet,statistics", id=video_id).execute()['items'][0]
         snippet = video_data['snippet']
         stats = video_data.get('statistics', {})
@@ -55,14 +62,11 @@ def advanced_delete_manager(youtube, channel_name, playlist_id):
         views = int(stats.get('viewCount', 0))
         likes = int(stats.get('likeCount', 0))
         
-        # 🚨 सबसे सख्त क्वालिटी कंट्रोल: खराब वीडियो को हमेशा के लिए डिलीट करना
-        # नियम: अगर 100 से ज़्यादा लोगों ने देखा, लेकिन लाइक 0 हैं (मतलब क्वालिटी खराब है)
+        # 🚨 सख्त डिलीट कमांड
         if views > 100 and likes == 0:
-            print(f"🗑️ Deleting bad quality video from {channel_name}...")
             youtube.videos().delete(id=video_id).execute()
-            return f"🚨 **ALERT ({channel_name})** 🚨\n❌ वीडियो क्वालिटी फेल! लोग इसे नापसंद कर रहे थे (Views: {views}, Likes: 0)।\nमैंने तुरंत एक्शन लेते हुए इस वीडियो को **यूट्यूब से हमेशा के लिए डिलीट (DELETE)** कर दिया है।"
+            return f"🚨 **ALERT ({channel_name})** 🚨\n❌ क्वालिटी फेल! (Views: {views}, Likes: 0)।\nमैंने इस वीडियो को हमेशा के लिए **DELETE** कर दिया है।"
         
-        # 📈 सही वीडियो होने पर लिंक अपडेट करना
         health_msg = f"👁️ Views: {views} | ❤️ Likes: {likes}\n"
         strategy = CHANNEL_STRATEGIES.get(channel_name, "NONE")
         
@@ -71,31 +75,38 @@ def advanced_delete_manager(youtube, channel_name, playlist_id):
             link = f"https://www.amazon.in/s?k={query}&tag={AMAZON_TAG}"
             snippet['description'] = old_desc + f"\n\n🔥 गैजेट खरीदें: {link}"
             youtube.videos().update(part="snippet", body={"id": video_id, "snippet": snippet}).execute()
-            add_top_comment(youtube, video_id, f"🔥 गैजेट यहाँ से खरीदें: {link}")
-            return f"🎬 **{channel_name}**\n{health_msg}✅ वीडियो सेफ है! अमेज़ॉन लिंक और कमेंट लग गया।"
+            add_top_comment(youtube, video_id, f"🔥 शानदार गैजेट यहाँ से खरीदें: {link}")
+            return f"🎬 **{channel_name}**\n{health_msg}✅ अमेज़ॉन लिंक लग गया।"
             
         elif strategy == "GUMROAD" and GUMROAD_LINK not in old_desc:
-            snippet['description'] = old_desc + f"\n\n🤖 AI सेटअप खरीदें: {GUMROAD_LINK}"
+            snippet['description'] = old_desc + f"\n\n🤖 100% ऑटोमेटेड AI सेटअप खरीदें: {GUMROAD_LINK}"
             youtube.videos().update(part="snippet", body={"id": video_id, "snippet": snippet}).execute()
-            add_top_comment(youtube, video_id, f"🤖 हमारा AI सेटअप खरीदें: {GUMROAD_LINK}")
-            return f"🎬 **{channel_name}**\n{health_msg}💰 वीडियो सेफ है! गमरोड लिंक और कमेंट लग गया।"
+            add_top_comment(youtube, video_id, f"🤖 हमारा ऑटोमेटेड AI सेटअप यहाँ से खरीदें: {GUMROAD_LINK}")
+            return f"🎬 **{channel_name}**\n{health_msg}💰 गमरोड लिंक लग गया।"
             
-        return f"🎬 **{channel_name}**\n{health_msg}⚡ वीडियो सेफ है, कोई नया बदलाव ज़रूरी नहीं।"
+        return f"🎬 **{channel_name}**\n{health_msg}⚡ सेफ है, कोई नया बदलाव ज़रूरी नहीं।"
             
     except Exception as e:
         return f"❌ **{channel_name}** में एरर: {e}"
 
 def main():
-    report = "🚀 **AI मास्टर मैनेजर: क्वालिटी ऑडिट और सेल्स रिपोर्ट** 🚀\n\n"
-    for token_var in ['YOUTUBE_REFRESH_TOKEN_1', 'YOUTUBE_REFRESH_TOKEN_2']:
-        try:
-            youtube = get_youtube_service(token_var)
-            channels = youtube.channels().list(part="snippet,contentDetails", mine=True, maxResults=50).execute().get('items', [])
-            for ch in channels:
-                report += advanced_delete_manager(youtube, ch['snippet']['title'], ch['contentDetails']['relatedPlaylists']['uploads']) + "\n\n"
-        except Exception:
-            pass
-            
+    report = "🚀 **AI मास्टर मैनेजर: फुल 10-चैनल ऑडिट रिपोर्ट** 🚀\n\n"
+    channels_found = 0
+    
+    for token_var in ALL_TOKENS:
+        youtube = get_youtube_service(token_var)
+        if youtube:
+            try:
+                channels = youtube.channels().list(part="snippet,contentDetails", mine=True, maxResults=50).execute().get('items', [])
+                for ch in channels:
+                    channels_found += 1
+                    report += advanced_delete_manager(youtube, ch['snippet']['title'], ch['contentDetails']['relatedPlaylists']['uploads']) + "\n\n"
+            except Exception:
+                pass
+                
+    if channels_found == 0:
+        report += "⚠️ कोई चैनल स्कैन नहीं हुआ। कृपया GitHub Secrets में टोकन चेक करें।"
+        
     send_telegram(report)
 
 if __name__ == "__main__":
