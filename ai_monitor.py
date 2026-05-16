@@ -12,7 +12,7 @@ TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
 AMAZON_TAG = "girishbhut07-21"
 GUMROAD_LINK = "https://your_store.gumroad.com/l/ai-setup" 
 
-# 🎯 10-चैनल स्मार्ट रणनीति (सही चैनलों पर सही लिंक)
+# 🎯 10-चैनल स्मार्ट रणनीति
 CHANNEL_STRATEGIES = {
     "GIRISH AI GADGET": "AMAZON",         
     "FACELESS AI WEALTH": "GUMROAD", 
@@ -35,8 +35,11 @@ def send_telegram(message):
 def get_youtube_service(token_env_var):
     client_secrets_json = os.getenv('YT_CLIENT_SECRET_JSON')
     refresh_token = os.getenv(token_env_var)
-    if not refresh_token or not client_secrets_json:
-        return None 
+    if not refresh_token:
+        return "MISSING_TOKEN"
+    if not client_secrets_json:
+        return "MISSING_JSON"
+    
     client_secrets = json.loads(client_secrets_json)['installed']
     creds = Credentials(token=None, refresh_token=refresh_token, token_uri=client_secrets['token_uri'], client_id=client_secrets['client_id'], client_secret=client_secrets['client_secret'])
     return build('youtube', 'v3', credentials=creds)
@@ -62,10 +65,9 @@ def advanced_delete_manager(youtube, channel_name, playlist_id):
         views = int(stats.get('viewCount', 0))
         likes = int(stats.get('likeCount', 0))
         
-        # 🚨 सख्त डिलीट कमांड
         if views > 100 and likes == 0:
             youtube.videos().delete(id=video_id).execute()
-            return f"🚨 **ALERT ({channel_name})** 🚨\n❌ क्वालिटी फेल! (Views: {views}, Likes: 0)।\nमैंने इस वीडियो को हमेशा के लिए **DELETE** कर दिया है।"
+            return f"🚨 **ALERT ({channel_name})** 🚨\n❌ क्वालिटी फेल! मैंने इस वीडियो को **DELETE** कर दिया है।"
         
         health_msg = f"👁️ Views: {views} | ❤️ Likes: {likes}\n"
         strategy = CHANNEL_STRATEGIES.get(channel_name, "NONE")
@@ -87,25 +89,34 @@ def advanced_delete_manager(youtube, channel_name, playlist_id):
         return f"🎬 **{channel_name}**\n{health_msg}⚡ सेफ है, कोई नया बदलाव ज़रूरी नहीं।"
             
     except Exception as e:
-        return f"❌ **{channel_name}** में एरर: {e}"
+        return f"❌ **{channel_name}** के अंदर गड़बड़: {e}"
 
 def main():
-    report = "🚀 **AI मास्टर मैनेजर: फुल 10-चैनल ऑडिट रिपोर्ट** 🚀\n\n"
+    report = "🚀 **AI मास्टर मैनेजर: लाइव डायग्नोस्टिक रिपोर्ट** 🚀\n\n"
     channels_found = 0
     
     for token_var in ALL_TOKENS:
-        youtube = get_youtube_service(token_var)
-        if youtube:
-            try:
-                channels = youtube.channels().list(part="snippet,contentDetails", mine=True, maxResults=50).execute().get('items', [])
-                for ch in channels:
-                    channels_found += 1
-                    report += advanced_delete_manager(youtube, ch['snippet']['title'], ch['contentDetails']['relatedPlaylists']['uploads']) + "\n\n"
-            except Exception:
-                pass
+        service_result = get_youtube_service(token_var)
+        
+        if service_result == "MISSING_TOKEN":
+            continue
+        elif service_result == "MISSING_JSON":
+            report += f"❌ **{token_var}**: YT_CLIENT_SECRET_JSON गायब है।\n\n"
+            continue
+            
+        # अगर कनेक्शन सही है तो प्रोसेस करें
+        try:
+            youtube = service_result
+            channels = youtube.channels().list(part="snippet,contentDetails", mine=True, maxResults=50).execute().get('items', [])
+            for ch in channels:
+                channels_found += 1
+                report += advanced_delete_manager(youtube, ch['snippet']['title'], ch['contentDetails']['relatedPlaylists']['uploads']) + "\n\n"
+        except Exception as e:
+            # 🚨 यहाँ हमें असली एरर पता चलेगा
+            report += f"❌ **{token_var} कनेक्शन फेल**: {str(e)[:150]}\n\n"
                 
     if channels_found == 0:
-        report += "⚠️ कोई चैनल स्कैन नहीं हुआ। कृपया GitHub Secrets में टोकन चेक करें।"
+        report += "⚠️ कोई चैनल स्कैन नहीं हो सका। कृपया ऊपर दिए गए असली एरर्स को देखें।"
         
     send_telegram(report)
 
