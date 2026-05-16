@@ -1,5 +1,6 @@
 import os
 import json
+import urllib.parse
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 import requests
@@ -8,9 +9,8 @@ import requests
 TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN')
 TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
 
-# यहाँ आप अपना असली अमेज़ॉन अफिलिएट लिंक डाल सकते हैं 
-AFFILIATE_LINK = "\n\n🛒 मेरे उपकरण खरीदें: https://amzn.to/YOUR_LINK_HERE"
-SEO_TAGS = "\n#GBYoutuber #MysticUniverse #Trending #Viral"
+# आपका असली अमेज़ॉन अफिलिएट टैग
+AMAZON_TAG = "girishbhut07-21"
 
 def send_telegram(message):
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
@@ -49,16 +49,27 @@ def optimize_latest_video(youtube, channel_name):
 
         video_id = playlist_response['items'][0]['snippet']['resourceId']['videoId']
         
-        # वीडियो का पूरा डेटा (Snippet) लेना
+        # वीडियो का पूरा डेटा लेना
         video_request = youtube.videos().list(part="snippet", id=video_id)
         video_response = video_request.execute()
         snippet = video_response['items'][0]['snippet']
         
+        title = snippet.get('title', '')
         old_desc = snippet.get('description', '')
         
         # चेक करना कि लिंक पहले से तो नहीं है
-        if "amzn.to" not in old_desc:
-            new_desc = old_desc + AFFILIATE_LINK + SEO_TAGS
+        if AMAZON_TAG not in old_desc:
+            # टाइटल से फालतू शब्द हटाकर सर्च कीवर्ड बनाना
+            clean_title = title.replace('#shorts', '').replace('Best', '').replace('🤯', '').strip()
+            search_query = urllib.parse.quote(clean_title)
+            
+            # आपका डायनामिक अमेज़ॉन लिंक बनाना
+            dynamic_link = f"https://www.amazon.in/s?k={search_query}&tag={AMAZON_TAG}"
+            
+            affiliate_text = f"\n\n🔥 👉 यह शानदार गैजेट आउट ऑफ़ स्टॉक होने से पहले यहाँ से खरीदें!\n🔗 लिंक: {dynamic_link}"
+            seo_tags = "\n#GBYoutuber #MysticUniverse #Trending #Viral #Gadgets"
+            
+            new_desc = old_desc + affiliate_text + seo_tags
             snippet['description'] = new_desc
             
             # यूट्यूब पर अपडेट करना
@@ -70,15 +81,15 @@ def optimize_latest_video(youtube, channel_name):
                 }
             )
             update_request.execute()
-            return f"✅ **{channel_name}**: नया वीडियो ऑप्टिमाइज़ किया गया और अमेज़ॉन लिंक लगा दिए गए!"
+            return f"✅ **{channel_name}**: वीडियो '{title}' में आपका असली अमेज़ॉन लिंक लगा दिया गया है!"
         else:
-            return f"⚡ **{channel_name}**: वीडियो में लिंक पहले से मौजूद हैं।"
+            return f"⚡ **{channel_name}**: इस वीडियो में आपका अमेज़ॉन लिंक पहले से लगा हुआ है।"
             
     except Exception as e:
         return f"❌ **{channel_name}** में एरर: वीडियो अपडेट नहीं हो सका।"
 
 def main():
-    report = "🚀 **AI मैनेजर: ऑटोमेशन और SEO रिपोर्ट**\n\n"
+    report = "🚀 **AI मैनेजर: अमेज़ॉन लिंक और SEO अपडेट रिपोर्ट**\n\n"
     tokens = ['YOUTUBE_REFRESH_TOKEN_1', 'YOUTUBE_REFRESH_TOKEN_2']
     
     for token_var in tokens:
