@@ -5,14 +5,12 @@ import requests
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 
-# 🔐 Telegram Settings
 TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN')
 TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
 
 AMAZON_TAG = "girishbhut07-21"
 GUMROAD_LINK = "https://your_store.gumroad.com/l/ai-setup" 
 
-# 🎯 10-चैनल स्मार्ट रणनीति
 CHANNEL_STRATEGIES = {
     "GIRISH AI GADGET": "AMAZON",         
     "FACELESS AI WEALTH": "GUMROAD", 
@@ -20,7 +18,6 @@ CHANNEL_STRATEGIES = {
     "ZEROTOUCH AI CREATOR": "GUMROAD"     
 }
 
-# 🔑 सभी 10 टोकन्स की लिस्ट
 ALL_TOKENS = [
     'TOKEN_GBYOUTUBER', 'TOKEN_HEALTH', 'TOKEN_SUCCESS', 'TOKEN_SANATAN', 
     'TOKEN_BOOK', 'TOKEN_MYSTERY', 'TOKEN_WEALTH', 'TOKEN_GADGET', 
@@ -29,26 +26,25 @@ ALL_TOKENS = [
 
 def send_telegram(message):
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
-    payload = {"chat_id": TELEGRAM_CHAT_ID, "text": message, "parse_mode": "Markdown"}
-    requests.post(url, json=payload)
+    requests.post(url, json={"chat_id": TELEGRAM_CHAT_ID, "text": message, "parse_mode": "Markdown"})
 
 def get_youtube_service(token_env_var):
     client_secrets_json = os.getenv('YT_CLIENT_SECRET_JSON')
     refresh_token = os.getenv(token_env_var)
-    if not refresh_token:
-        return "MISSING_TOKEN"
-    if not client_secrets_json:
-        return "MISSING_JSON"
     
-    client_secrets = json.loads(client_secrets_json)['installed']
-    creds = Credentials(token=None, refresh_token=refresh_token, token_uri=client_secrets['token_uri'], client_id=client_secrets['client_id'], client_secret=client_secrets['client_secret'])
-    return build('youtube', 'v3', credentials=creds)
-
-def add_top_comment(youtube, video_id, comment_text):
+    if not refresh_token: return "MISSING_TOKEN"
+    if not client_secrets_json: return "MISSING_JSON"
+    
     try:
-        youtube.commentThreads().insert(part="snippet", body={"snippet": {"videoId": video_id, "topLevelComment": {"snippet": {"textOriginal": comment_text}}}}).execute()
-    except Exception:
-        pass
+        secrets_data = json.loads(client_secrets_json)
+        # यह लाइन 'Web' और 'Desktop' दोनों JSON को 100% सपोर्ट करेगी
+        client_secrets = secrets_data.get('installed', secrets_data.get('web'))
+        if not client_secrets: return "INVALID_JSON"
+        
+        creds = Credentials(token=None, refresh_token=refresh_token, token_uri=client_secrets['token_uri'], client_id=client_secrets['client_id'], client_secret=client_secrets['client_secret'])
+        return build('youtube', 'v3', credentials=creds)
+    except Exception as e:
+        return f"CRASH: {str(e)}"
 
 def advanced_delete_manager(youtube, channel_name, playlist_id):
     try:
@@ -75,36 +71,37 @@ def advanced_delete_manager(youtube, channel_name, playlist_id):
         if strategy == "AMAZON" and AMAZON_TAG not in old_desc:
             query = urllib.parse.quote(title.replace('#shorts', '').strip())
             link = f"https://www.amazon.in/s?k={query}&tag={AMAZON_TAG}"
-            snippet['description'] = old_desc + f"\n\n🔥 गैजेट खरीदें: {link}"
+            snippet['description'] = old_desc + f"\n\n🔥 शानदार गैजेट खरीदें: {link}"
             youtube.videos().update(part="snippet", body={"id": video_id, "snippet": snippet}).execute()
-            add_top_comment(youtube, video_id, f"🔥 शानदार गैजेट यहाँ से खरीदें: {link}")
+            try:
+                youtube.commentThreads().insert(part="snippet", body={"snippet": {"videoId": video_id, "topLevelComment": {"snippet": {"textOriginal": f"🔥 गैजेट यहाँ से खरीदें: {link}"}}}}).execute()
+            except: pass
             return f"🎬 **{channel_name}**\n{health_msg}✅ अमेज़ॉन लिंक लग गया।"
             
         elif strategy == "GUMROAD" and GUMROAD_LINK not in old_desc:
             snippet['description'] = old_desc + f"\n\n🤖 100% ऑटोमेटेड AI सेटअप खरीदें: {GUMROAD_LINK}"
             youtube.videos().update(part="snippet", body={"id": video_id, "snippet": snippet}).execute()
-            add_top_comment(youtube, video_id, f"🤖 हमारा ऑटोमेटेड AI सेटअप यहाँ से खरीदें: {GUMROAD_LINK}")
+            try:
+                youtube.commentThreads().insert(part="snippet", body={"snippet": {"videoId": video_id, "topLevelComment": {"snippet": {"textOriginal": f"🤖 हमारा AI सेटअप यहाँ से खरीदें: {GUMROAD_LINK}"}}}}).execute()
+            except: pass
             return f"🎬 **{channel_name}**\n{health_msg}💰 गमरोड लिंक लग गया।"
             
         return f"🎬 **{channel_name}**\n{health_msg}⚡ सेफ है, कोई नया बदलाव ज़रूरी नहीं।"
             
     except Exception as e:
-        return f"❌ **{channel_name}** के अंदर गड़बड़: {e}"
+        return f"❌ **{channel_name}** एरर: {str(e)[:100]}"
 
 def main():
-    report = "🚀 **AI मास्टर मैनेजर: लाइव डायग्नोस्टिक रिपोर्ट** 🚀\n\n"
+    report = "🚀 **AI मास्टर मैनेजर: लाइव 10-चैनल रिपोर्ट** 🚀\n\n"
     channels_found = 0
     
     for token_var in ALL_TOKENS:
         service_result = get_youtube_service(token_var)
         
-        if service_result == "MISSING_TOKEN":
-            continue
-        elif service_result == "MISSING_JSON":
-            report += f"❌ **{token_var}**: YT_CLIENT_SECRET_JSON गायब है।\n\n"
+        if isinstance(service_result, str):
+            report += f"⚠️ **{token_var}**: {service_result}\n\n"
             continue
             
-        # अगर कनेक्शन सही है तो प्रोसेस करें
         try:
             youtube = service_result
             channels = youtube.channels().list(part="snippet,contentDetails", mine=True, maxResults=50).execute().get('items', [])
@@ -112,11 +109,10 @@ def main():
                 channels_found += 1
                 report += advanced_delete_manager(youtube, ch['snippet']['title'], ch['contentDetails']['relatedPlaylists']['uploads']) + "\n\n"
         except Exception as e:
-            # 🚨 यहाँ हमें असली एरर पता चलेगा
-            report += f"❌ **{token_var} कनेक्शन फेल**: {str(e)[:150]}\n\n"
+            report += f"❌ **{token_var} API एरर**: {str(e)[:150]}\n\n"
                 
     if channels_found == 0:
-        report += "⚠️ कोई चैनल स्कैन नहीं हो सका। कृपया ऊपर दिए गए असली एरर्स को देखें।"
+        report += "⚠️ मशीन को कोई यूट्यूब चैनल नहीं मिला! (क्या आपने टोकन निकालते समय जीमेल की जगह 'यूट्यूब चैनल' सेलेक्ट किया था?)"
         
     send_telegram(report)
 
