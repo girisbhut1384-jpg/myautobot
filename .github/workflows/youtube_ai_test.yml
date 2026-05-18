@@ -1,7 +1,9 @@
 name: AI YouTube Manager
 
 on:
-  workflow_dispatch: # यह लाइन हमें हाथ से रन करने का बटन देगी
+  workflow_dispatch: 
+  schedule:
+    - cron: '0 */6 * * *' 
 
 jobs:
   test_connection:
@@ -20,9 +22,18 @@ jobs:
 
       - name: Run AI Monitor
         env:
+          # यहाँ से मशीन को सारी चाबियां मिलेंगी 👇
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           YT_CLIENT_SECRET_JSON: ${{ secrets.YT_CLIENT_SECRET_JSON }}
-          YOUTUBE_REFRESH_TOKEN_1: ${{ secrets.YOUTUBE_REFRESH_TOKEN_1 }}
-          YOUTUBE_REFRESH_TOKEN_2: ${{ secrets.YOUTUBE_REFRESH_TOKEN_2 }}
+          TOKEN_GBYOUTUBER: ${{ secrets.TOKEN_GBYOUTUBER }}
+          TOKEN_HEALTH: ${{ secrets.TOKEN_HEALTH }}
+          TOKEN_SUCCESS: ${{ secrets.TOKEN_SUCCESS }}
+          TOKEN_SANATAN: ${{ secrets.TOKEN_SANATAN }}
+          TOKEN_BOOK: ${{ secrets.TOKEN_BOOK }}
+          TOKEN_MYSTERY: ${{ secrets.TOKEN_MYSTERY }}
+          TOKEN_WEALTH: ${{ secrets.TOKEN_WEALTH }}
+          TOKEN_GADGET: ${{ secrets.TOKEN_GADGET }}
+          TOKEN_EMPIRE: ${{ secrets.TOKEN_EMPIRE }}
+          TOKEN_ZEROTOUCH: ${{ secrets.TOKEN_ZEROTOUCH }}
         run: python ai_monitor.py
